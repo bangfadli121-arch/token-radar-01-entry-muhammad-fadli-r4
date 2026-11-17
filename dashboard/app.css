@@ -145,6 +145,11 @@ footer{display:flex;justify-content:space-between;gap:16px;border-top:1px solid 
 th[data-sort]{cursor:pointer}
 th[data-sort]:hover{color:#0b6e4f}
 .cattable tr.you td{background:#eef4ff;font-weight:650}
+/* A deep-linked filter puts the board first, so the filtered rows are what
+   loads in view (see setHash in app.js). Nothing is hidden — the hero,
+   heatmap and the rest follow below the board. */
+body.deep-filter main{display:flex;flex-direction:column}
+body.deep-filter .board{order:-1}
 .cell{cursor:pointer}
 .cell:hover{outline:2px solid #0b6e4f;outline-offset:1px}
 .movers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
