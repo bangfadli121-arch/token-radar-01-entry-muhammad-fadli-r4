@@ -89,7 +89,7 @@ function heatText(avg){return avg>0?'+'+avg.toFixed(2)+'%':avg.toFixed(2)+'%';}
 /* --- category heatmap + the same momentum as a table. Clicking a cell
    filters the board to that category and says what the category holds. --- */
 (function renderHeat(){
-  $('#heatmap').innerHTML=momentum.map(m=>`<div class="cell" data-category="${esc(m.category)}" style="${heatStyle(m.avg7d)}" title="Click to filter the board to ${esc(m.category)}"><b>${esc(m.category)}</b><span class="cat-n">${m.count} protocols on the board</span><div class="cat-avg ${m.avg7d>=0?'positive':'negative'}">${heatText(m.avg7d)}</div><div class="cat-mult">multiplier ×${m.mult.toFixed(4)}</div></div>`).join('');
+  $('#heatmap').innerHTML=momentum.map(m=>`<div class="cell" data-category="${esc(m.category)}" style="${heatStyle(m.avg7d)}" title="Click to filter the board to ${esc(m.category)}"><b>${esc(m.category)}</b><span class="cat-n">${m.count} protocol${m.count===1?'':'s'} on the board</span><div class="cat-avg ${m.avg7d>=0?'positive':'negative'}">${heatText(m.avg7d)}</div><div class="cat-mult">multiplier ×${m.mult.toFixed(4)}</div></div>`).join('');
   $('#catTable').innerHTML=`<table class="cattable"><thead><tr><th>CATEGORY</th><th>PROTOCOLS</th><th>MEAN 7D</th><th>CATEGORY MULT</th></tr></thead><tbody>${momentum.map(m=>`<tr><td>${esc(m.category)}</td><td class="num">${m.count}</td><td class="num ${m.avg7d>=0?'positive':'negative'}">${heatText(m.avg7d)}</td><td class="num">×${m.mult.toFixed(4)}</td></tr>`).join('')}</tbody></table>`;
   document.querySelectorAll('#heatmap .cell').forEach(el=>el.onclick=()=>{
     const cat=el.dataset.category;
@@ -98,7 +98,7 @@ function heatText(avg){return avg>0?'+'+avg.toFixed(2)+'%':avg.toFixed(2)+'%';}
     const topImp=[...inCat].sort((a,b)=>b.implied_value_usd-a.implied_value_usd)[0];
     const topClk=[...inCat].sort((a,b)=>b.launchScore-a.launchScore||b.implied_value_usd-a.implied_value_usd)[0];
     const m=multOf.get(cat);
-    $('#catFocus').innerHTML=`<b>${esc(cat)}</b> — ${inCat.length} protocols · mean 7d ${heatText(m.avg7d)} · multiplier ×${m.mult.toFixed(4)}. Highest implied value: ${esc(topImp.name)} (${compact(topImp.implied_value_usd)}). Highest launch score: ${esc(topClk.name)} (${topClk.launchScore}, ${windowLabel(topClk.launchWindow)}). The board below is now filtered to this category — clear the category select to see all ${rows.length} rows again.`;
+    $('#catFocus').innerHTML=`<b>${esc(cat)}</b> — ${inCat.length} protocol${inCat.length===1?'':'s'} · mean 7d ${heatText(m.avg7d)} · multiplier ×${m.mult.toFixed(4)}. Highest implied value: ${esc(topImp.name)} (${compact(topImp.implied_value_usd)}). Highest launch score: ${esc(topClk.name)} (${topClk.launchScore}, ${windowLabel(topClk.launchWindow)}). The board below is now filtered to this category — clear the category select to see all ${rows.length} rows again.`;
     document.querySelector('.board').scrollIntoView({behavior:'smooth',block:'start'});
   });
 })();
@@ -147,7 +147,7 @@ const topLaunch=[...rows].sort((a,b)=>b.launchScore-a.launchScore||b.implied_val
   const counts={soon:0,mid:0,late:0};for(const r of rows)counts[r.launchWindow]++;
   const defs=[
     ['soon','SOON · UNDER 90 DAYS','The clock counts these down in weeks, not months.'],
-    ['mid','MID · 90–180 DAYS','The bulk of the clock's near term: young, moving, not yet imminent.'],
+    ['mid','MID · 90–180 DAYS','The bulk of the near term: young, moving, not yet imminent.'],
     ['late','LATE · OVER 180 DAYS','Most of the board. Old enough or slow enough that the clock reads patience.'],
   ];
   $('#windowCards').innerHTML=defs.map(([w,label,blurb])=>{
@@ -176,7 +176,7 @@ function workedBlock(r,heading){
     line('implied3 = round(implied2 × categoryMult)', usd(imp3raw), true)+
     line('ageScore = 100 × (1 − min(age, 1095) / 1095)', ls.ageScore.toFixed(1))+
     line('growthScore = (clamped growth + 75) / 225 × 100', ls.growthScore.toFixed(1))+
-    line('launchScore = round(0.6 × ageScore + 0.4 × growthScore)', `${ls.launchScore} / 100`)+
+    line('launchScore = 0.6 × ageScore + 0.4 × growthScore', `${ls.launchScore} / 100`)+
     line('estDays = 30 + round(330 × (100 − launchScore) / 100)', `${est} days → ${windowLabel(r.launchWindow)}`)+
     line('Board value (implied_value_usd)', usd(r.implied_value_usd), true);
 }
@@ -243,7 +243,7 @@ function openDetail(r,writeHash=true){
   <div><span>categoryMult</span><b>×${r.categoryMult.toFixed(4)}</b></div>
   <div><span>ageScore — 100 × (1 − min(age, 1095) / 1095)</span><b>${ls.ageScore.toFixed(1)}</b></div>
   <div><span>growthScore — (clamped growth + 75) / 225 × 100</span><b>${ls.growthScore.toFixed(1)}</b></div>
-  <div><span>launchScore — round(0.6 × ageScore + 0.4 × growthScore)</span><b>${ls.launchScore} / 100</b></div>
+  <div><span>launchScore = 0.6 × ageScore + 0.4 × growthScore</span><b>${ls.launchScore} / 100</b></div>
   <div><span>estDays — 30 + round(330 × (100 − score) / 100)</span><b>${est} days</b></div>
   <div class="wide"><span>Launch window — under 90 days soon · 90–180 mid · over 180 late</span><b>${windowLabel(r.launchWindow)}</b></div>
   <div class="wide"><span>implied3 — round(implied2 × categoryMult)</span><b>${usd(imp3raw)}${r.implied3Adjusted?' → '+usd(r.implied_value_usd)+' (shaved $1: rounding tied two rows)':''}</b></div>
@@ -308,6 +308,11 @@ function setHash(){
   else if(h.startsWith('#filter=category:')){const name=decodeURIComponent(h.slice(17));state.category=name;$('#category').value=name;}
   else if(h.startsWith('#filter=window:')){const w=decodeURIComponent(h.slice(15));if(['soon','mid','late'].includes(w)){state.win=w;$('#window').value=w;}}
   else if(h==='#tab=live'){tab='live';document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab==='live'));}
+  /* A deep-linked filter is a link to the filtered board: put the board
+     first in the page order so the filtered rows are what loads in view.
+     (Programmatic scrolling does not paint in a headless screenshot, so
+     the board is moved, not scrolled to.) */
+  if(h.startsWith('#filter='))document.body.classList.add('deep-filter');
 }
 /* Clicking a column header sorts by that column (the ↕ in the header says
    so); the sort select follows the click, so the two controls never fight. */
@@ -348,12 +353,14 @@ if(location.hash.startsWith('#detail='))openDetail(bySlug.get(decodeURIComponent
 /* --- a visible summary when the page loads with a hash filter --- */
 if(location.hash.startsWith('#filter=')){
   const top=document.querySelector('.top'),banner=document.createElement('div');banner.id='activeFilterBanner';
-  Object.assign(banner.style,{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px',padding:'10px max(calc((100vw - 1240px)/2),20px)',background:'#0b6e4f',color:'#fff',font:'12px ui-monospace,monospace'});
+  Object.assign(banner.style,{position:'sticky',top:0,zIndex:30,display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px',padding:'10px max(calc((100vw - 1240px)/2),20px)',background:'#0b6e4f',color:'#fff',font:'12px ui-monospace,monospace'});
   const summary=document.createElement('span');
   const filterName=location.hash==='#filter=watchlist'?'Watchlist only':location.hash.startsWith('#filter=category:')?`Category: ${$('#category').value}`:`Launch window: ${windowLabel(state.win)}`;
   summary.textContent=`ACTIVE FILTER · ${filterName} · ${$('#count').textContent}`;
   const clear=document.createElement('button');clear.type='button';clear.textContent='Clear';Object.assign(clear.style,{background:'transparent',border:'1px solid #fff',borderRadius:'4px',color:'#fff',padding:'5px 10px',cursor:'pointer',font:'inherit'});
-  clear.addEventListener('click',()=>{history.replaceState(null,'',location.pathname+location.search);for(const id of ['category','chain','window'])document.getElementById(id).value='';$('#watch').checked=false;$('#search').value='';$('#sort').value='implied';for(const id of ['category','chain','window'])document.getElementById(id).dispatchEvent(new Event('change'));$('#watch').dispatchEvent(new Event('change'));$('#search').dispatchEvent(new Event('input'));$('#sort').dispatchEvent(new Event('change'));banner.remove();});
+  clear.addEventListener('click',()=>{history.replaceState(null,'',location.pathname+location.search);document.body.classList.remove('deep-filter');for(const id of ['category','chain','window'])document.getElementById(id).value='';$('#watch').checked=false;$('#search').value='';$('#sort').value='implied';for(const id of ['category','chain','window'])document.getElementById(id).dispatchEvent(new Event('change'));$('#watch').dispatchEvent(new Event('change'));$('#search').dispatchEvent(new Event('input'));$('#sort').dispatchEvent(new Event('change'));banner.remove();});
   banner.append(summary,clear);top.insertAdjacentElement('afterend',banner);
+  /* The board is moved first by the deep-filter class (see setHash), so
+     the filtered rows are already in view — no scroll is needed. */
 }
 })();
